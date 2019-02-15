@@ -1,48 +1,50 @@
+using System;
+
 namespace ECS
 {
     public sealed class EventBus
     {
-        private SystemRepository systemRepository;
-        private ComponentRepository componentRepository;
-        private EntityViewRepository entityViewRepository;
+        private SystemPool systemPool;
+        private ComponentPool componentPool;
+        private EntityViewPool entityViewPool;
 
-        public EventBus(SystemRepository systemRepository, ComponentRepository componentRepository, EntityViewRepository entityViewRepository) 
+        public EventBus(SystemPool systemPool, ComponentPool componentPool, EntityViewPool entityViewPool) 
         {
-            this.systemRepository = systemRepository;
-            this.componentRepository = componentRepository;
-            this.entityViewRepository = entityViewRepository;
+            this.systemPool = systemPool;
+            this.componentPool = componentPool;
+            this.entityViewPool = entityViewPool;
 
-            this.systemRepository.EventBus = this;
-            this.componentRepository.EventBus = this;
-            this.entityViewRepository.EventBus = this;
+            this.systemPool.EventBus = this;
+            this.componentPool.EventBus = this;
+            this.entityViewPool.EventBus = this;
         }
 
         public void OnComponentAdded<T>(T component) where T : IComponent 
         {
-            componentRepository.AddComponent(component);
+            componentPool.AddComponent(component);
 
-            var entityComponents = componentRepository.GetComponentsFor(component.EntityId);
-            entityViewRepository.CheckAndAddEntityView(component.EntityId, entityComponents);
+            var entityComponents = componentPool.GetComponentsFor(component.EntityGuid);
+            entityViewPool.CheckAndAddEntityView(component.EntityGuid, entityComponents);
         }
 
-        public void OnComponentRemoved<T>(long entityId) where T : IComponent 
+        public void OnComponentRemoved<T>(Guid entityGuid) where T : IComponent 
         {
-            componentRepository.RemoveComponent<T>(entityId);
+            componentPool.RemoveComponent<T>(entityGuid);
 
-            entityViewRepository.RemoveEntityViewsWithComponent<T>(entityId);
+            entityViewPool.RemoveEntityViewsWithComponent<T>(entityGuid);
         }
 
-        public void OnEntityRemoved(long entityId)
+        public void OnEntityRemoved(Guid entityGuid)
         {
 
         }
 
         public void OnEntityViewTypeAdded<T>() where T : IEntityView 
         {
-            var entityViewBag = entityViewRepository.AddEntityViewType<T>();
+            var entityViewBag = entityViewPool.AddEntityViewType<T>();
 
             if (entityViewBag != null) {
-                systemRepository.SubscribeSystemsToEntityView<T>(entityViewBag);
+                systemPool.SubscribeSystemsToEntityView<T>(entityViewBag);
             }
         }
     }

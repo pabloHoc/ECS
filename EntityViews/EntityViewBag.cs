@@ -15,18 +15,18 @@ namespace ECS {
             EntityViews.Add((T)component);
         }
 
-        public void RemoveEntityView(long entityId) {
+        public void RemoveEntityView(Guid entityGuid) {
             for (int i = EntityViews.Count - 1; i >= 0; i--)
             {
-                if (EntityViews[i].EntityId == entityId)
+                if (EntityViews[i].EntityGuid == entityGuid)
                     EntityViews.RemoveAt(i);
             }
         }
 
-        public IEntityView GetEntityView(long entityId)
+        public IEntityView GetEntityView(Guid entityGuid)
         {
             foreach(var entityView in EntityViews) {
-                if (entityView.EntityId == entityId) {
+                if (entityView.EntityGuid == entityGuid) {
                     return entityView;
                 }
             }

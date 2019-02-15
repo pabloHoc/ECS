@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace ECS
 {
-    public sealed class SystemRepository
+    public sealed class SystemPool
     {
         public EventBus EventBus { private get; set; }
         public IList<ISystem> Systems { get; private set; }
 
-        public SystemRepository()
+        public SystemPool()
         {
             Systems = new List<ISystem>();
         }

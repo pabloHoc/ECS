@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace ECS
 {
-    public sealed class EntityViewRepository
+    public sealed class EntityViewPool
     {
         public EventBus EventBus { private get; set; }
         private readonly Dictionary<Type, IEntityViewBag> entityViewBags;
 
-        public EntityViewRepository() 
+        public EntityViewPool() 
         {
             entityViewBags = new Dictionary<Type, IEntityViewBag>();
         }
@@ -32,27 +32,27 @@ namespace ECS
             return null;
         }
 
-        public void CheckAndAddEntityView(long entityId, IEnumerable<IComponent> entityComponents)
+        public void CheckAndAddEntityView(Guid entityGuid, IEnumerable<IComponent> entityComponents)
         {
             var entityViewTypes = GetEntityViewTypesForComponents(entityComponents);
 
             foreach(var type in entityViewTypes) {
-                var entityView = BuildEntityViewFromComponents(entityId, type, entityComponents);
+                var entityView = BuildEntityViewFromComponents(entityGuid, type, entityComponents);
                 entityViewBags[type].AddEntityView(entityView);
             }
         }
 
-        internal void RemoveEntityViewsWithComponent<T>(long entityId) where T : IComponent
+        internal void RemoveEntityViewsWithComponent<T>(Guid entityGuid) where T : IComponent
         {
             var entityViewTypes = GetEntityViewTypesForComponent<T>();
 
             foreach (var type in entityViewTypes)
             {
-                entityViewBags[type].RemoveEntityView(entityId);
+                entityViewBags[type].RemoveEntityView(entityGuid);
             }
         }
 
-        private IEntityView BuildEntityViewFromComponents(long entityId, Type entityViewBlueprint, IEnumerable<IComponent> entityComponents)
+        private IEntityView BuildEntityViewFromComponents(Guid entityGuid, Type entityViewBlueprint, IEnumerable<IComponent> entityComponents)
         {
             var entityView = (IEntityView)Activator.CreateInstance(entityViewBlueprint);
 
@@ -61,8 +61,8 @@ namespace ECS
                 prop.SetValue(entityView, component);
             }
 
-            var entityIdProp = entityView.GetType().GetProperty("EntityId");
-            entityIdProp.SetValue(entityView, entityId);
+            var entityIdProp = entityView.GetType().GetProperty("EntityGuid");
+            entityIdProp.SetValue(entityView, entityGuid);
 
             return entityView;
         }
@@ -92,7 +92,7 @@ namespace ECS
                 entityViewTypes.Add(key);
 
                 foreach (var property in key.GetProperties()) {
-                    if (property.Name != "EntityId") 
+                    if (property.Name != "EntityGuid") 
                     {
                         var match = false;
                         foreach (var component in entityComponents) {
@@ -108,13 +108,13 @@ namespace ECS
             return entityViewTypes;
         }
 
-        public IEnumerable<IEntityView> GetEntityViewsFor(long entityId)
+        public IEnumerable<IEntityView> GetEntityViewsFor(Guid entityGuid)
         {
             var entityViews = new List<IEntityView>();
 
             foreach (var entityViewBag in entityViewBags.Values)
             {
-                var entityView = entityViewBag.GetEntityView(entityId);
+                var entityView = entityViewBag.GetEntityView(entityGuid);
                 if (entityView != null) {
                     entityViews.Add(entityView);
                 }

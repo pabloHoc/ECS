@@ -5,47 +5,47 @@ using System.Threading.Tasks;
 namespace ECS
 {
     public sealed class ECSEngine {
-        private EntityManager entityManager;
-        private SystemRepository systemRepository;
-        private ComponentRepository componentRepository;
-        private EntityViewRepository entityViewRepository;
+        private EntityPool entityPool;
+        private SystemPool systemPool;
+        private ComponentPool componentPool;
+        private EntityViewPool entityViewPool;
         private EventBus eventBus;
 
         public ECSEngine() 
         {
-            entityManager = new EntityManager();
-            systemRepository = new SystemRepository();
-            componentRepository = new ComponentRepository();
-            entityViewRepository = new EntityViewRepository();
+            entityPool = new EntityPool();
+            systemPool = new SystemPool();
+            componentPool = new ComponentPool();
+            entityViewPool = new EntityViewPool();
             
-            eventBus = new EventBus(systemRepository, componentRepository, entityViewRepository);
+            eventBus = new EventBus(systemPool, componentPool, entityViewPool);
         }
 
         public void Update(float delta) 
         {
-            List<Task> tasks = new List<Task>();
-            foreach (var system in systemRepository.Systems)
+            // List<Task> tasks = new List<Task>();
+            foreach (var system in systemPool.Systems)
             {
-                // system.Update(delta);
-                Task task = new Task(() => system.Update(delta));
-                tasks.Add(task);
-                task.Start();
+                system.Update(delta);
+                // Task task = new Task(() => system.Update(delta));
+                // tasks.Add(task);
+                // task.Start();
             }
-            Task.WaitAll(tasks.ToArray());
+            // Task.WaitAll(tasks.ToArray());
 
         }
 
         public void AddSystem(ISystem system)
         {
-            systemRepository.AddSystem(system);
+            systemPool.AddSystem(system);
         }
 
-        public long AddEntity()
+        public Entity AddEntity()
         {
-            return entityManager.AddEntity();
+            return entityPool.AddEntity();
         }
 
-        public void AddComponentToEntity<T>(long entityId, T component) where T : IComponent 
+        public void AddComponentToEntity<T>(T component) where T : IComponent 
         {
             eventBus.OnComponentAdded<T>(component);
         }
