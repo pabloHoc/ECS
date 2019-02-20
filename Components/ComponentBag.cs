@@ -5,32 +5,27 @@ using System.Collections.Generic;
 namespace ECS {
     internal sealed class ComponentBag<T> : IComponentBag where T : IComponent
     {
-        private List<T> components;
+        private DynamicArray<T> components;
 
-        public ComponentBag()
+        public ComponentBag(int initialSize)
         {
-            components = new List<T>(); 
+            components = new DynamicArray<T>(initialSize); 
         }
         public void AddComponent(IComponent component) {
-            components.Add((T)component);
+            components.AddAt((T)component, component.EntityId);
         }
 
-        public void RemoveComponent(Guid entityGuid) {
-            for (int i = components.Count - 1; i >= 0; i--)
-            {
-                if (components[i].EntityGuid == entityGuid)
-                    components.RemoveAt(i);
-            }
+        public void RemoveComponent(uint entityId) {
+            components.RemoveAt(entityId);
         }
 
-        public IComponent GetComponent(Guid entityGuid)
+        public DynamicArray<T> GetComponents() {
+            return components;                                
+        }
+
+        public IComponent GetComponent(uint entityId)
         {
-            foreach(var component in components) {
-                if (component.EntityGuid == entityGuid) {
-                    return component;
-                }
-            }
-            return null;
+            return components.GetAt(entityId);
         }
     }
 }

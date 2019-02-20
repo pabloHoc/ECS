@@ -3,7 +3,10 @@ using System.Collections.Generic;
 namespace ECS {
     public interface ISystem
     {
-        void Update(float delta);
-        void CheckEntityViewAndSubscribe<T>(IEntityViewBag entityViewBag) where T : IEntityView;
+        EventBus EventBus { set; }
+        void Execute(float delta);
+        void CheckEntityAndSubscribe(uint entityId, IEnumerable<IComponent> components);
+        void UnsubscribeEntityWithComponent<T>(uint entityId) where T : IComponent;
+        void UnsubscribeEntityWithId(uint entityId);
     }
 } 
