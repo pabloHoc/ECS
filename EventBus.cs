@@ -18,11 +18,6 @@ namespace ECS
             this.systemPool.EventBus = this;
         }
 
-        public DynamicArray<T> GetComponents<T>() where T : IComponent 
-        {
-            return componentPool.GetComponents<T>();                
-        }
-
         public void OnComponentAdded<T>(T component) where T : IComponent 
         {
             componentPool.AddComponent(component);

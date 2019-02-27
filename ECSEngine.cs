@@ -30,9 +30,10 @@ namespace ECS
 
         }
 
-        public void AddSystem(ISystem system)
-        {
+        public void AddSystem<T>() where T : ISystem, new() {
+            var system = new T();
             system.EventBus = eventBus;
+            system.ComponentPool = componentPool;
             systemPool.AddSystem(system);
         }
 
