@@ -5,8 +5,9 @@ namespace ECS
 {
     public interface IComponentBag
     {
+        Type ComponentType { get; }
         void AddComponent(IComponent component);
-        void RemoveComponent(uint EntityId);
-        IComponent GetComponent(uint EntityId);
+        void RemoveComponents(uint entityId);
+        IComponent[] GetComponentsAt(uint entityId);
     }
 }

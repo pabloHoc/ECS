@@ -25,16 +25,25 @@ namespace ECS
 
             foreach (var componentBag in componentBags.Values)
             {
-                var component = componentBag.GetComponent(entityId);
-                if (component != null) {
-                    components.Add(component);
-                }
+                var componentsOfTypeForEntity = componentBag.GetComponentsAt(entityId);
+                for (int i = 0; i < componentsOfTypeForEntity.Length; i++)
+                    components.Add(componentsOfTypeForEntity[i]);
             }
 
             return components;
         }
 
-        public IComponentBag GetComponentBag<T>(bool createIfNotExists = false) where T : IComponent
+        private ComponentBag<T> GetComponentBag<T>(T type) where T : Type, IComponent
+        {
+            IComponentBag componentBag;
+            if (componentBags.TryGetValue(typeof(T), out componentBag))
+            {
+                return (ComponentBag<T>)componentBag;
+            }
+            return null;
+        }
+
+        private ComponentBag<T> GetComponentBag<T>(bool createIfNotExists = false) where T : IComponent
         {
             IComponentBag componentBag;
             if (!componentBags.TryGetValue(typeof(T), out componentBag))
@@ -44,7 +53,7 @@ namespace ECS
                     componentBags.Add(typeof(T), componentBag);
                 }
             }
-            return componentBag;
+            return (ComponentBag<T>)componentBag;
         }
 
         internal void RemoveComponentsFor(uint entityId)
@@ -54,7 +63,7 @@ namespace ECS
                 IComponentBag componentBag;
                 if (componentBags.TryGetValue(T, out componentBag))
                 {
-                    componentBag.RemoveComponent(entityId);
+                    componentBag.RemoveComponents(entityId);
                 }
             }
         }
@@ -64,10 +73,10 @@ namespace ECS
             return ((ComponentBag<T>)GetComponentBag<T>()).GetComponents();
         }
 
-        public void RemoveComponent<T>(uint entityId) where T : IComponent
+        public void RemoveComponent<T>(uint entityId, T item) where T : IComponent
         {
             var componentBag = GetComponentBag<T>();
-            componentBag.RemoveComponent(entityId);
+            componentBag.RemoveComponent(entityId, item);
         }
     }
 }   

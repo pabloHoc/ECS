@@ -26,9 +26,9 @@ namespace ECS
             systemPool.CheckEntityAndSubscribe(component.EntityId, entityComponents);
         }
 
-        public void OnComponentRemoved<T>(uint entityId) where T : IComponent 
+        public void OnComponentRemoved<T>(uint entityId, T item) where T : IComponent 
         {
-            componentPool.RemoveComponent<T>(entityId);
+            componentPool.RemoveComponent<T>(entityId, item);
             systemPool.UnsubscribeEntityWithComponent<T>(entityId);
         }
 
