@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 
-namespace ECS {
+namespace ECS
+{
     public interface ISystem
     {
+        ECSEngine Engine { set; }
         EventBus EventBus { set; }
-        ComponentPool ComponentPool { set; }
+        Components Components { set; }
         void Execute(float delta);
-        void CheckEntityAndSubscribe(uint entityId, IEnumerable<IComponent> components);
-        void UnsubscribeEntityWithComponent<T>(uint entityId) where T : IComponent;
-        void UnsubscribeEntityWithId(uint entityId);
     }
-} 
+}

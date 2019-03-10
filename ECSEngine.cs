@@ -1,22 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ECSTest;
 
 namespace ECS
 {
-    public sealed class ECSEngine {
+    public partial class ECSEngine {
         private EntityPool entityPool;
         private SystemPool systemPool;
-        private ComponentPool componentPool;
+        private Components components;
         private EventBus eventBus;
+        private Dictionary<Filter, List<uint>> groupsCache;
 
         public ECSEngine() 
         {
             entityPool = new EntityPool();
-            componentPool = new ComponentPool();
+            components = new Components();
             systemPool = new SystemPool();
+            groupsCache = new Dictionary<Filter, List<uint>>();
             
-            eventBus = new EventBus(entityPool, componentPool, systemPool);
+            eventBus = new EventBus(this, entityPool, components, systemPool);
         }
 
         public void Update(float delta) 
@@ -32,27 +35,55 @@ namespace ECS
 
         public void AddSystem<T>() where T : ISystem, new() {
             var system = new T();
+            system.Engine = this;
             system.EventBus = eventBus;
-            system.ComponentPool = componentPool;
+            system.Components = components;
             systemPool.AddSystem(system);
         }
 
-        public Entity AddEntity()
+        public uint AddEntity()
         {
             return entityPool.AddEntity();
         }
 
-        public void AddComponentToEntity<T>(T component) where T  : IComponent 
+        public void RemoveEntity(uint entityId)
         {
-            eventBus.OnComponentAdded<T>(component);
+            eventBus.OnEntityRemoved(entityId);
         }
 
-        public void RemoveEntitiesTest()
+        public T AddComponentToEntity<T>(uint entityId) where T : IComponent, new() 
         {
-            for (uint i = 0; i < 11; i++)
+            return eventBus.OnComponentAdded<T>(entityId);
+        }
+
+        public void OnEntityUpdated(uint entityId)
+        {
+            var componentTypes = components.GetComponentTypesFor(entityId);
+
+            foreach (var keyValuePair in groupsCache) 
             {
-                eventBus.OnEntityRemoved(i);
+                if (keyValuePair.Key.Matches(componentTypes)) 
+                {
+                    if (!keyValuePair.Value.Contains(entityId))   
+                        keyValuePair.Value.Add(entityId);
+                } else
+                {
+                    keyValuePair.Value.Remove(entityId);
+                }
             }
+        }
+
+        public List<uint> GetEntitiesFor(Filter filter) 
+        {
+            List<uint> entities;
+
+            if(!groupsCache.TryGetValue(filter, out entities)) 
+            {
+                entities = components.GetEntitiesFor(filter);
+                groupsCache.Add(filter, entities);
+            }
+
+            return entities;
         }
     }    
 }

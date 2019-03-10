@@ -4,26 +4,27 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace ECS {
+namespace ECS
+{
     public sealed class EntityPool
     {
         uint lastEntityId;
-        private List<Entity> entities;
-        private Queue<Entity> deadEntities;
+        private List<uint> entities;
+        private Queue<uint> deadEntities;
 
         public EntityPool() 
         {
-            entities = new List<Entity>();
-            deadEntities = new Queue<Entity>();
+            entities = new List<uint>();
+            deadEntities = new Queue<uint>();
             lastEntityId = 0;
         }
 
-        internal Entity AddEntity() 
+        internal uint AddEntity() 
         {
             if (deadEntities.Count > 0)
                 return deadEntities.Dequeue();
 
-            var entity = new Entity(lastEntityId);
+            var entity = lastEntityId;
             entities.Add(entity);
             lastEntityId++;
             return entity;
@@ -31,9 +32,8 @@ namespace ECS {
 
         internal void RemoveEntity(uint entityId) 
         {
-            var entity = entities.Find(e => e.Id == entityId);
-            if (!entity.Equals(default(Entity)) && !deadEntities.Contains(entity))
-                deadEntities.Enqueue(entity);
+            if (entities.Contains(entityId) && !deadEntities.Contains(entityId))
+                deadEntities.Enqueue(entityId);
         }
     }
 }

@@ -33,28 +33,6 @@ namespace ECS
             foreach(var system in Systems) {
                 system.Execute(delta);
             }
-                
-        }
-
-        public void CheckEntityAndSubscribe(uint entityId, IEnumerable<IComponent> components)
-        {
-            foreach(var system in Systems) {
-                system.CheckEntityAndSubscribe(entityId, components);                    
-            }
-        }
-
-        internal void UnsubscribeEntityWithComponent<T>(uint entityId) where T : IComponent
-        {
-            foreach(var system in Systems) {
-                system.UnsubscribeEntityWithComponent<T>(entityId);                    
-            }
-        }
-
-        internal void UnsubscribeEntityWithId(uint entityId)
-        {
-            foreach(var system in Systems) {
-                system.UnsubscribeEntityWithId(entityId);                    
-            }
         }
     }    
 }

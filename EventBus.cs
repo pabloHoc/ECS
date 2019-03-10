@@ -4,39 +4,43 @@ namespace ECS
 {
     public sealed class EventBus
     {
+        private ECSEngine engine;
         private EntityPool entityPool;
-        private ComponentPool componentPool;
+        private Components components;
         private SystemPool systemPool;
 
-        public EventBus(EntityPool entityPool, ComponentPool componentPool, SystemPool systemPool) 
+        public EventBus(ECSEngine engine, EntityPool entityPool, Components componentPool, SystemPool systemPool) 
         {
+            this.engine = engine;
             this.entityPool = entityPool;
-            this.componentPool = componentPool;
+            this.components = componentPool;
             this.systemPool = systemPool;
 
-            this.componentPool.EventBus = this;
+            this.components.EventBus = this;
             this.systemPool.EventBus = this;
         }
 
-        public void OnComponentAdded<T>(T component) where T : IComponent 
+        public T OnComponentAdded<T>(uint entityId) where T : IComponent, new() 
         {
-            componentPool.AddComponent(component);
-
-            var entityComponents = componentPool.GetComponentsFor(component.EntityId);
-            systemPool.CheckEntityAndSubscribe(component.EntityId, entityComponents);
+            var component = components.AddComponent<T>(entityId);
+            engine.OnEntityUpdated(entityId);
+            return component;
         }
 
-        public void OnComponentRemoved<T>(uint entityId, T item) where T : IComponent 
+        public void OnComponentRemoved<T>(uint entityId, T component) where T : IComponent , new()
         {
-            componentPool.RemoveComponent<T>(entityId, item);
-            systemPool.UnsubscribeEntityWithComponent<T>(entityId);
+            components.RemoveComponent<T>(entityId, component);
+            engine.OnEntityUpdated(entityId);
         }
 
+        /**
+         * TODO: callback for components that points to other entityIds
+         */
         public void OnEntityRemoved(uint entityId)
         {
-            componentPool.RemoveComponentsFor(entityId);
-            systemPool.UnsubscribeEntityWithId(entityId);
+            components.RemoveComponentsFor(entityId);
             entityPool.RemoveEntity(entityId);
+            engine.OnEntityUpdated(entityId);
         }
     }
 }

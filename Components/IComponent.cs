@@ -1,8 +1,9 @@
 using System;
 
-namespace ECS {
+namespace ECS
+{
     public interface IComponent
     {
-        uint EntityId { get; }
+        uint EntityId { get; set; }
     }
 }
